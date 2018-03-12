@@ -1,0 +1,6 @@
+flask
+flask-restful
+Flask-PyMongo
+
+celery[redis]
+redis
