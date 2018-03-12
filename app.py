@@ -25,11 +25,11 @@ parser.add_argument('video_name', type=str)
 
 
 @celery.task
-def track(args):
+def track(video):
     full_path = os.path.dirname(os.path.realpath(__file__))
     analyzer_path = os.path.join(full_path, 'analyze.out')
     result_dir = os.path.join(full_path, 'results')
-    video_name, ext = os.path.splitext(args['video_name'])
+    video_name, ext = os.path.splitext(video['name'])
     if not os.path.exists(result_dir):
         os.makedirs(result_dir)
     result_path = os.path.join(result_dir, '{}.dat'.format(video_name))
@@ -41,10 +41,9 @@ def track(args):
 class WushuTracker(Resource):
     def get(self):
         args = parser.parse_args()
-        video = mongo.db.video.find({'name': args['video_name']})
-        # print(dir(video))
-        # print(video.explain())
-        if args['action'] == 'track' and args['video_name']:
+        videos = mongo.db.video.find({'name': args['video_name']})
+        if args['action'] == 'track' and videos.count():
+            video = videos[0]
             track.delay(args)
             return 0
         return 1
