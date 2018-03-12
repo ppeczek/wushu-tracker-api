@@ -8,9 +8,7 @@ from flask_restful import Resource, Api, reqparse
 
 
 app = Flask(__name__)
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-app.config['MONGO_DBNAME'] = 'wugensui'
+app.config.from_object(os.environ.get('FLASK_SETTINGS_MODULE'))
 
 api = Api(app)
 
@@ -44,12 +42,10 @@ class WushuTracker(Resource):
         videos = mongo.db.video.find({'name': args['video_name']})
         if args['action'] == 'track' and videos.count():
             video = videos[0]
-            track.delay(args)
+            video.pop('_id')
+            track.delay(video)
             return 0
         return 1
 
 
 api.add_resource(WushuTracker, '/')
-
-if __name__ == '__main__':
-    app.run(debug=True)
